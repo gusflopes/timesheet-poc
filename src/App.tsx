@@ -1,8 +1,8 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Container, Divider, Grid, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { FuncionariosLista } from './components/FuncionariosLista';
 import ModalCliente from './components/ModalCliente';
-import ModalNovoFuncionario from './components/ModalNovoFuncionario';
 import { example, funcionariosResponse } from './data';
 
 const Item = (props: any) => {
@@ -11,8 +11,8 @@ const Item = (props: any) => {
   )
 }
 
-type Funcionarios = {
-  name?: string;
+type Funcionario = {
+  name: string;
   funcionarioId: number;
   projetoClienteId: number;
   projetoClienteFuncionarioAtivo: boolean;
@@ -21,7 +21,7 @@ type Funcionarios = {
 export default function App() {
   const [clienteModal, setClienteModal] = useState(false);
   const [projeto, setProjeto] = useState(example);
-  const [funcionarios, setFuncionarios] = useState([] as Funcionarios[]);
+  const [funcionarios, setFuncionarios] = useState([] as Funcionario[]);
   const [selectedCliente, setSelectedCliente] = useState(0);
   const [expanded, setExpanded] = useState<number | false>(false);
 
@@ -53,7 +53,7 @@ export default function App() {
         projetoClienteFuncionarioAtivo: projetoClienteFuncionario.projetoClienteFuncionarioAtivo,
       };
     });
-    setFuncionarios(funcionariosData as Funcionarios[]);
+    setFuncionarios(funcionariosData as Funcionario[]);
     console.log(`Selecionado ProjetoClienteId ${selectedCliente}`);
     console.log(funcionariosData);
     }
@@ -162,25 +162,8 @@ export default function App() {
           </Item>
         </Grid>
         {/* Funcionários */}
-        {selectedCliente > 0 && <Grid item sm={4} md={3}>
-          <Item>
-            <h4>Funcionário</h4>
-            <Divider sx={{marginBottom: 2}} />
-            <Stack>
-              <ModalNovoFuncionario key="bnf" ProjetoClienteId={selectedCliente} />
-              {funcionarios.map((funcionario) => {
-                return (
-                    <Stack key={`funcionario-${funcionario.funcionarioId}`} sx={{margin: 2, border: "1px solid green"}}>
-                      <span>Nome: {funcionario.name}</span>
-                      <span>FuncionarioId: {funcionario.funcionarioId}</span>
-                      <span>ClienteId: {funcionario.projetoClienteId}</span>
-                      <span>Status: {funcionario.projetoClienteFuncionarioAtivo ? "SIM" : "NÃO"}</span>
-                    </Stack>
-                )
-              })}
-              </Stack>
-              </Item>
-        </Grid>}
+        {selectedCliente > 0 &&
+          <FuncionariosLista funcionarios={funcionarios} selectedCliente={selectedCliente}  />}
       </Grid>
     </Container>
   );
