@@ -1,8 +1,7 @@
-import { Button, Container, Divider, Grid, Stack } from '@mui/material';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Container, Divider, Grid, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
-import ModalNovoCliente from './components/ModalNovoCliente';
+import ModalCliente from './components/ModalCliente';
 import ModalNovoFuncionario from './components/ModalNovoFuncionario';
 import { example, funcionariosResponse } from './data';
 
@@ -20,14 +19,24 @@ type Funcionarios = {
 }
 
 export default function App() {
+  const [clienteModal, setClienteModal] = useState(false);
   const [projeto, setProjeto] = useState(example);
   const [funcionarios, setFuncionarios] = useState([] as Funcionarios[]);
   const [selectedCliente, setSelectedCliente] = useState(0);
+  const [expanded, setExpanded] = useState<number | false>(false);
+
+  const handleModalCliente = (projetoClienteId: number) => setClienteModal(!clienteModal);
+
+  const handleChange =
+  (panel: number) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false);
+  };
 
   useEffect(() => {
-
+    // console.log("Chamado useEffect 1 - MAIOR")
     // Cliente foi selecionado
     if (selectedCliente) {
+      console.log("SelectedCliente");
     // Buscar Funcionarios
     const projetoCliente = example.projetoClientes.find(
       (projetoCliente) => projetoCliente.projetoClienteId === selectedCliente
@@ -50,22 +59,29 @@ export default function App() {
     }
     }, [selectedCliente]);
 
-    useEffect(() => {
-      console.log("Atualização em Funcionários - Renderizando novos dados");
-    }, [funcionarios])
+  useEffect(() => {
+    // console.log("Chamado useEffect 2 - MENOR")
+    // console.log("Atualização em Funcionários - Renderizando novos dados");
+  }, [funcionarios])
 
   return (
     <Container maxWidth="xl">
-      
+      <ModalCliente
+        projetoId={projeto.projetoId}
+        clienteId={selectedCliente}
+        openModal={clienteModal}
+         />
       <Grid container spacing={2}>
-        <Grid item xs={12}>
+        {/* Titulo */}
+        <Grid item sm={12} >
           <Box sx={{ my: 5 }}>
             <Typography variant="h4" component="h1" gutterBottom>
               Cadastro de Projetos
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={6} md={3}>
+        {/* Projeto */}
+        <Grid item sm={12} md={3}>
           <Item>
             <h4>Projeto</h4>
             <Divider sx={{marginBottom: 2}} />
@@ -77,16 +93,53 @@ export default function App() {
             </Stack>
           </Item>
         </Grid>
-        <Grid item xs={6} md={6}>
+        {/* Clientes */}
+        <Grid item sm={8} md={6}>
           <Item>
-            <Stack>
+            <Stack key="Clientes">
               <h4>Clientes</h4>
               <Divider sx={{marginBottom: 2}} />
-              <ModalNovoCliente ProjetoId={projeto.projetoId} />
+              {/* <ModalNovoCliente ProjetoId={projeto.projetoId}  /> */}
+              <Button onClick={() => {
+                  setSelectedCliente(0)
+                  handleModalCliente(projeto.projetoId)
+
+              }}>Novo Cliente</Button>
+
+                  {/* <Button onClick={async () => {
+                      setSelectedCliente(projetoCliente.projetoClienteId)
+                      handleModalCliente(projetoCliente.projetoClienteId)
+                    }}>Editar Cliente {projetoCliente.projetoClienteId}</Button> */}
               {example.projetoClientes.map((projetoCliente) => {
                 return (
+                  <Accordion key={`clientes-${projetoCliente.projetoClienteId}`} expanded={expanded === projetoCliente.projetoClienteId} onChange={handleChange(projetoCliente.projetoClienteId)}>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel1bh-content"
+                    id="panel1bh-header"
+                  >
+                    {/* <Typography sx={{ width: '20%', flexShrink: 0 }}>
+                      Cliente
+                    </Typography> */}
+                      <Button
+                        sx={{
+                          // color: 'text.secondary'
+                          display: 'flex',
+                          flex: 1
+                        }}
+                        onClick={() =>setSelectedCliente(projetoCliente.projetoClienteId)}
+                      >
+                        {projetoCliente.projetoClienteAlias}
+                      </Button>
+                  </AccordionSummary>
+                  <AccordionDetails>
                   <Stack key={`projetoCliente-${projetoCliente.projetoClienteId}`} sx={{margin: 2, border: "1px solid green"}}>
-                    <Button onClick={() =>setSelectedCliente(projetoCliente.projetoClienteId)}>Selecionar Cliente {projetoCliente.projetoClienteId}</Button>
+                    <Button onClick={async () => {
+                      setSelectedCliente(projetoCliente.projetoClienteId)
+                      handleModalCliente(projetoCliente.projetoClienteId)
+                      // AQUI
+
+                    }}>Editar Cliente {projetoCliente.projetoClienteId}</Button>
                     <span>ProjetoClienteId: {projetoCliente.projetoClienteId}</span>
                     <span>ClienteId: {projetoCliente.clienteId}</span>
                     <span>"gestorId": {projetoCliente.gestorId},</span>
@@ -99,12 +152,17 @@ export default function App() {
                     <span>"projetoClienteNumPedido": {projetoCliente.projetoClienteNumPedido}</span>
                     <span>"projetoClienteAtivo": {projetoCliente.projetoClienteAtivo ? "SIM" : "NÃO"}</span>
                   </Stack>
+                  </AccordionDetails>
+                </Accordion>
+                  
+                  
               )})}
 
             </Stack>
           </Item>
         </Grid>
-        {selectedCliente > 0 && <Grid item xs={6} md={3}>
+        {/* Funcionários */}
+        {selectedCliente > 0 && <Grid item sm={4} md={3}>
           <Item>
             <h4>Funcionário</h4>
             <Divider sx={{marginBottom: 2}} />
@@ -124,7 +182,6 @@ export default function App() {
               </Item>
         </Grid>}
       </Grid>
-      
     </Container>
   );
 }
